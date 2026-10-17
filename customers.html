@@ -1,0 +1,223 @@
+<html>
+<head>
+    <title>WashFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">
+                <img src="C:\Users\USER1\OneDrive\Documents\COLLEGE\PROJECTS\LMS\images\logo3.jpg" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+                LAUNDRY MANAGEMENT SYSTEM
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">DASHBOARD</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="orders.html">ORDERS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="neworder.html">NEW ORDER</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">ACTIONS</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="customers.html">CUSTOMERS</a></li>
+                            <li><a class="dropdown-item" href="customers.html">REPORTS</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="login.html" onclick="return logout(event)"><i class="bi bi-box-arrow-right"></i> LOGOUT</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>CUSTOMERS</h2>
+        <div class="row align-items-center mt-4">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search customers">
+                </div>
+            </div>
+            <div class="col-md-8 text-end">
+                <a href="newcustomer.html" class="btn btn-dark">
+                    <i class="bi bi-plus-lg"></i> NEW CUSTOMER
+                </a>
+            </div>
+        </div>
+        <div id="customerMessage"></div>
+        <div class="table-responsive mt-4">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Customer ID</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Phone</th>
+                        <th scope="col">No of Orders</th>
+                    </tr>
+                </thead>
+                <tbody id="customersTable"></tbody>
+            </table>
+        </div>
+        <h2 class="mt-5">REPORTS</h2>
+        <div class="row g-4 mt-1">
+            <div class="col-md-4">
+                <div class="card text-bg-light h-100">
+                    <div class="card-header">Total Orders</div>
+                    <div class="card-body">
+                        <h3 class="card-title" id="totalOrders">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-bg-light h-100">
+                    <div class="card-header">Completed Orders</div>
+                    <div class="card-body">
+                        <h3 class="card-title" id="completedOrders">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-bg-light h-100">
+                    <div class="card-header">Total Revenue</div>
+                    <div class="card-body">
+                        <h3 class="card-title" id="totalRevenue">₹0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h4 class="mt-5">WEEKLY ORDERS</h4>
+        <div class="table-responsive mt-3 mb-5">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Day</th>
+                        <th scope="col">Orders</th>
+                    </tr>
+                </thead>
+                <tbody id="weeklyOrders"></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        const API_URL = "/api";
+        let customers = [];
+        let orders = [];
+
+        async function loadData() {
+            try {
+                const [customersResponse, ordersResponse, reportsResponse] = await Promise.all([
+                    fetch(`${API_URL}/customers`),
+                    fetch(`${API_URL}/orders`),
+                    fetch(`${API_URL}/reports`)
+                ]);
+
+                if (!customersResponse.ok || !ordersResponse.ok || !reportsResponse.ok) {
+                    throw new Error("Failed to load data");
+                }
+
+                customers = await customersResponse.json();
+                orders = await ordersResponse.json();
+                const reports = await reportsResponse.json();
+
+                displayCustomers();
+                displayReports(reports);
+            } catch (error) {
+                document.getElementById("customersTable").innerHTML = `<tr><td colspan="4" class="text-center text-danger">Unable to connect to backend</td></tr>`;
+                document.getElementById("weeklyOrders").innerHTML = `<tr><td colspan="2" class="text-center text-danger">Unable to load reports</td></tr>`;
+            }
+        }
+
+        function displayCustomers() {
+            const search = document.getElementById("searchInput").value.toLowerCase().trim();
+            const table = document.getElementById("customersTable");
+
+            const filteredCustomers = customers.filter(customer =>
+                customer.name.toLowerCase().includes(search) ||
+                customer.phone.toLowerCase().includes(search) ||
+                String(customer.id).includes(search) ||
+                `C${String(customer.id).padStart(2, "0")}`.toLowerCase().includes(search)
+            );
+
+            if (filteredCustomers.length === 0) {
+                table.innerHTML = `<tr><td colspan="4" class="text-center">No customers found</td></tr>`;
+                return;
+            }
+
+            table.innerHTML = filteredCustomers.map(customer => {
+                const orderCount = orders.filter(order => order.customerId === customer.id).length;
+
+                return `
+                    <tr>
+                        <th scope="row">C${String(customer.id).padStart(2, "0")}</th>
+                        <td>${customer.name}</td>
+                        <td>${customer.phone}</td>
+                        <td>${orderCount}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        function displayReports(reports) {
+            document.getElementById("totalOrders").textContent = reports.totalOrders;
+            document.getElementById("completedOrders").textContent = reports.completedOrders;
+            document.getElementById("totalRevenue").textContent = `₹${Number(reports.totalRevenue).toLocaleString("en-IN")}`;
+
+            const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+            const weeklyOrders = {};
+            days.forEach(day => weeklyOrders[day] = 0);
+
+            orders.forEach(order => {
+                if (!order.orderDate) return;
+
+                const date = new Date(order.orderDate);
+                const day = date.toLocaleDateString("en-US", { weekday: "long" });
+
+                if (weeklyOrders[day] !== undefined) {
+                    weeklyOrders[day]++;
+                }
+            });
+
+            const total = Object.values(weeklyOrders).reduce((sum, count) => sum + count, 0);
+
+            document.getElementById("weeklyOrders").innerHTML = days.map(day => `
+                <tr>
+                    <th scope="row">${day}</th>
+                    <td>${weeklyOrders[day]}</td>
+                </tr>
+            `).join("") + `
+                <tr class="table-light">
+                    <th scope="row">Total</th>
+                    <th>${total}</th>
+                </tr>
+            `;
+        }
+
+        document.getElementById("searchInput").addEventListener("input", displayCustomers);
+
+        function logout(event) {
+            event.preventDefault();
+            localStorage.removeItem("user");
+            fetch("/api/logout", { method: "POST" }).finally(() => {
+                window.location.href = "login.html";
+            });
+            return false;
+        }
+
+        loadData();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

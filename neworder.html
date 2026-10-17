@@ -1,0 +1,287 @@
+<html>
+<head>
+    <title>WashFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">
+                <img src="C:\Users\USER1\OneDrive\Documents\COLLEGE\PROJECTS\LMS\images\logo3.jpg" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+                LAUNDRY MANAGEMENT SYSTEM
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">DASHBOARD</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="orders.html">ORDERS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="neworder.html">NEW ORDER</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">ACTIONS</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="customers.html">CUSTOMERS</a></li>
+                            <li><a class="dropdown-item" href="customers.html">REPORTS</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="login.html" onclick="return logout(event)"><i class="bi bi-box-arrow-right"></i> LOGOUT</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>NEW ORDER</h2>
+        <div class="row g-4 mt-1">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">Customer Information</div>
+                    <div class="card-body">
+                        <div class="mb-3 row">
+                            <label for="customerName" class="col-sm-4 col-form-label">Name</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="customerName">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="customerPhone" class="col-sm-4 col-form-label">Phone</label>
+                            <div class="col-sm-8">
+                                <input type="tel" class="form-control" id="customerPhone">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">Laundry Details</div>
+                    <div class="card-body">
+                        <div class="mb-3 row">
+                            <label for="laundryService" class="col-sm-4 col-form-label">Service Type</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" id="laundryService">
+                                    <option selected>Select Service</option>
+                                    <option>Wash & Fold</option>
+                                    <option>Dry Cleaning</option>
+                                    <option>Ironing</option>
+                                    <option>Wash & Iron</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="laundryType" class="col-sm-4 col-form-label">Item Type</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" id="laundryType">
+                                    <option selected>Select Item</option>
+                                    <option>Shirt</option>
+                                    <option>Pant</option>
+                                    <option>T-Shirt</option>
+                                    <option>Bedsheet</option>
+                                    <option>Curtain</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="laundryQuantity" class="col-sm-4 col-form-label">Quantity</label>
+                            <div class="col-sm-8">
+                                <input type="number" class="form-control" id="laundryQuantity" min="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">Dates</div>
+                    <div class="card-body">
+                        <div class="mb-3 row">
+                            <label for="pickupDate" class="col-sm-4 col-form-label">Pickup Date</label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control" id="pickupDate">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="deliveryDate" class="col-sm-4 col-form-label">Delivery Date</label>
+                            <div class="col-sm-8">
+                                <input type="date" class="form-control" id="deliveryDate">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">Payment</div>
+                    <div class="card-body">
+                        <div class="mb-3 row">
+                            <label for="totalAmount" class="col-sm-4 col-form-label">Total Amount</label>
+                            <div class="col-sm-8">
+                                <input type="number" class="form-control" id="totalAmount" readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="status" class="col-sm-4 col-form-label">Payment Status</label>
+                            <div class="col-sm-8">
+                                <select class="form-select" id="status">
+                                    <option selected>Pending</option>
+                                    <option>Paid</option>
+                                    <option>Partially Paid</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="message"></div>
+        <div class="d-flex justify-content-end gap-2 mt-4 mb-4">
+            <a href="orders.html" class="btn btn-secondary">CANCEL</a>
+            <button type="button" class="btn btn-success" onclick="addOrder()">ADD ORDER</button>
+        </div>
+    </div>
+    <script>
+        const API_URL = "/api";
+        let customers = [];
+
+        async function loadCustomers() {
+            try {
+                const response = await fetch(`${API_URL}/customers`);
+                customers = await response.json();
+            } catch (error) {
+                customers = [];
+            }
+        }
+
+        function calculateTotal() {
+            const service = document.getElementById("laundryService").value;
+            const item = document.getElementById("laundryType").value;
+            const quantity = Number(document.getElementById("laundryQuantity").value);
+            const prices = {
+                "Wash & Fold": {
+                    "Shirt": 40,
+                    "Pant": 50,
+                    "T-Shirt": 40,
+                    "Bedsheet": 100,
+                    "Curtain": 120
+                },
+                "Dry Cleaning": {
+                    "Shirt": 80,
+                    "Pant": 100,
+                    "T-Shirt": 80,
+                    "Bedsheet": 180,
+                    "Curtain": 200
+                },
+                "Ironing": {
+                    "Shirt": 20,
+                    "Pant": 25,
+                    "T-Shirt": 20,
+                    "Bedsheet": 40,
+                    "Curtain": 50
+                },
+                "Wash & Iron": {
+                    "Shirt": 60,
+                    "Pant": 70,
+                    "T-Shirt": 60,
+                    "Bedsheet": 140,
+                    "Curtain": 160
+                }
+            };
+
+            const price = prices[service]?.[item] || 0;
+            document.getElementById("totalAmount").value = price * quantity;
+        }
+
+        async function addOrder() {
+            const name = document.getElementById("customerName").value.trim();
+            const phone = document.getElementById("customerPhone").value.trim();
+            const service = document.getElementById("laundryService").value;
+            const item = document.getElementById("laundryType").value;
+            const quantity = Number(document.getElementById("laundryQuantity").value);
+            const orderDate = document.getElementById("pickupDate").value;
+            const deliveryDate = document.getElementById("deliveryDate").value;
+            const total = Number(document.getElementById("totalAmount").value);
+            const paymentStatus = document.getElementById("status").value;
+            const message = document.getElementById("message");
+
+            if (!name || !phone) {
+                message.innerHTML = `<div class="alert alert-danger mt-3">Customer name and phone are required.</div>`;
+                return;
+            }
+
+            if (service === "Select Service" || item === "Select Item" || !quantity || quantity < 1) {
+                message.innerHTML = `<div class="alert alert-danger mt-3">Please select service, item and quantity.</div>`;
+                return;
+            }
+
+            const customer = customers.find(c => c.name.toLowerCase() === name.toLowerCase() && c.phone === phone);
+
+            if (!customer) {
+                message.innerHTML = `<div class="alert alert-danger mt-3">Customer not found. Please add the customer first.</div>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/orders`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        customerId: customer.id,
+                        service,
+                        item,
+                        quantity,
+                        orderDate,
+                        deliveryDate,
+                        total,
+                        paymentStatus
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    message.innerHTML = `<div class="alert alert-danger mt-3">${data.message}</div>`;
+                    return;
+                }
+
+                message.innerHTML = `<div class="alert alert-success mt-3">Order created successfully.</div>`;
+
+                setTimeout(() => {
+                    window.location.href = "orders.html";
+                }, 800);
+            } catch (error) {
+                message.innerHTML = `<div class="alert alert-danger mt-3">Unable to connect to backend.</div>`;
+            }
+        }
+
+        function logout(event) {
+            event.preventDefault();
+            localStorage.removeItem("user");
+            fetch("/api/logout", { method: "POST" }).finally(() => {
+                window.location.href = "login.html";
+            });
+            return false;
+        }
+
+        document.getElementById("laundryService").addEventListener("change", calculateTotal);
+        document.getElementById("laundryType").addEventListener("change", calculateTotal);
+        document.getElementById("laundryQuantity").addEventListener("input", calculateTotal);
+
+        loadCustomers();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

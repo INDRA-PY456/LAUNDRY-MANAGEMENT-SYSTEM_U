@@ -1,0 +1,298 @@
+<html>
+<head>
+    <title>WashFlow - Order Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">
+                <img src="C:\Users\USER1\OneDrive\Documents\COLLEGE\PROJECTS\LMS\images\logo3.jpg" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+                LAUNDRY MANAGEMENT SYSTEM
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">DASHBOARD</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="orders.html">ORDERS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="neworder.html">NEW ORDER</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">ACTIONS</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="customers.html">CUSTOMERS</a></li>
+                            <li><a class="dropdown-item" href="customers.html">REPORTS</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="login.html" onclick="return logout(event)"><i class="bi bi-box-arrow-right"></i> LOGOUT</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>ORDER DETAILS</h2>
+        <div id="message"></div>
+        <div class="card mt-4">
+            <div class="card-header">Order Information</div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-3"><strong>Order ID</strong><br><span id="orderId">-</span></div>
+                    <div class="col-md-3"><strong>Customer Name</strong><br><span id="customerName">-</span></div>
+                    <div class="col-md-3"><strong>Phone Number</strong><br><span id="customerPhone">-</span></div>
+                    <div class="col-md-3"><strong>Date</strong><br><span id="orderDate">-</span></div>
+                </div>
+            </div>
+        </div>
+        <h4 class="mt-4">LAUNDRY ITEMS</h4>
+        <div class="table-responsive mt-3">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Item</th>
+                        <th>Service</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody id="laundryItems"></tbody>
+            </table>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="text-center mb-4">ORDER STATUS</h5>
+                <div class="d-flex align-items-center text-center">
+                    <div class="flex-fill">
+                        <div class="fs-2" id="receivedIcon">○</div>
+                        <strong id="receivedText">Order Received</strong>
+                    </div>
+                    <div class="flex-fill border-top" id="receivedLine"></div>
+                    <div class="flex-fill">
+                        <div class="fs-2" id="washingIcon">○</div>
+                        <strong id="washingText">Washing</strong>
+                    </div>
+                    <div class="flex-fill border-top" id="washingLine"></div>
+                    <div class="flex-fill">
+                        <div class="fs-2" id="readyIcon">○</div>
+                        <strong id="readyText">Ready</strong>
+                    </div>
+                    <div class="flex-fill border-top" id="readyLine"></div>
+                    <div class="flex-fill">
+                        <div class="fs-2" id="completedIcon">○</div>
+                        <strong id="completedText">Completed</strong>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-8">
+                        <label for="orderStatus" class="form-label">Update Order Status</label>
+                        <select class="form-select" id="orderStatus">
+                            <option>Received</option>
+                            <option>Washing</option>
+                            <option>Drying</option>
+                            <option>Ironing</option>
+                            <option>Ready</option>
+                            <option>Completed</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="card-header">Payment Information</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="paymentStatus" class="form-label">Payment Status</label>
+                        <select class="form-select" id="paymentStatus">
+                            <option>Pending</option>
+                            <option>Paid</option>
+                            <option>Partially Paid</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="amount" class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="amount">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-4 mb-4">
+            <button type="button" class="btn btn-primary" onclick="updateOrder()">UPDATE STATUS</button>
+            <a href="orders.html" class="btn btn-secondary">BACK</a>
+        </div>
+    </div>
+    <script>
+        const API_URL = "/api";
+        const orderId = new URLSearchParams(window.location.search).get("id");
+        let currentOrder = null;
+
+        async function loadOrder() {
+            if (!orderId) {
+                showMessage("Order ID is missing.", "danger");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/orders/${orderId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showMessage(data.message, "danger");
+                    return;
+                }
+
+                currentOrder = data;
+                document.getElementById("orderId").innerText = `LM${String(data.id).padStart(2, "0")}`;
+                document.getElementById("customerName").innerText = data.customerName;
+                document.getElementById("orderDate").innerText = formatDate(data.orderDate);
+                document.getElementById("amount").value = data.total;
+                document.getElementById("paymentStatus").value = data.paymentStatus;
+                document.getElementById("orderStatus").value = data.status;
+
+                const customerResponse = await fetch(`${API_URL}/customers/${data.customerId}`);
+                if (customerResponse.ok) {
+                    const customer = await customerResponse.json();
+                    document.getElementById("customerPhone").innerText = customer.phone;
+                }
+
+                document.getElementById("laundryItems").innerHTML = `
+                    <tr>
+                        <td>${data.item}</td>
+                        <td>${data.service}</td>
+                        <td>${data.quantity}</td>
+                        <td>₹${Number(data.total).toLocaleString("en-IN")}</td>
+                    </tr>
+                `;
+
+                updateStatusDisplay(data.status);
+            } catch (error) {
+                showMessage("Unable to connect to backend.", "danger");
+            }
+        }
+
+        async function updateOrder() {
+            if (!currentOrder) return;
+
+            const status = document.getElementById("orderStatus").value;
+            const paymentStatus = document.getElementById("paymentStatus").value;
+            const amount = Number(document.getElementById("amount").value);
+
+            try {
+                const statusResponse = await fetch(`${API_URL}/orders/${orderId}/status`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                const statusData = await statusResponse.json();
+
+                if (!statusResponse.ok) {
+                    showMessage(statusData.message, "danger");
+                    return;
+                }
+
+                const paymentResponse = await fetch(`${API_URL}/orders/${orderId}/payment`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ paymentStatus })
+                });
+
+                const paymentData = await paymentResponse.json();
+
+                if (!paymentResponse.ok) {
+                    showMessage(paymentData.message, "danger");
+                    return;
+                }
+
+                const amountResponse = await fetch(`${API_URL}/orders/${orderId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ total: amount })
+                });
+
+                const amountData = await amountResponse.json();
+
+                if (!amountResponse.ok) {
+                    showMessage(amountData.message, "danger");
+                    return;
+                }
+
+                currentOrder = amountData.order;
+                updateStatusDisplay(status);
+                showMessage("Order updated successfully.", "success");
+            } catch (error) {
+                showMessage("Unable to connect to backend.", "danger");
+            }
+        }
+
+        function updateStatusDisplay(status) {
+            const stages = ["Received", "Washing", "Ready", "Completed"];
+            const currentIndex = status === "Drying" || status === "Ironing" ? 1 : stages.indexOf(status);
+
+            stages.forEach((stage, index) => {
+                const name = stage.toLowerCase();
+                const icon = document.getElementById(`${name}Icon`);
+                const text = document.getElementById(`${name}Text`);
+
+                if (index <= currentIndex) {
+                    icon.innerText = "✓";
+                    text.classList.remove("text-muted");
+                } else {
+                    icon.innerText = "○";
+                    text.classList.add("text-muted");
+                }
+            });
+
+            document.getElementById("receivedLine").classList.toggle("border-success", currentIndex >= 1);
+            document.getElementById("washingLine").classList.toggle("border-success", currentIndex >= 2);
+            document.getElementById("readyLine").classList.toggle("border-success", currentIndex >= 3);
+        }
+
+        function formatDate(date) {
+            if (!date) return "-";
+            const formatted = new Date(date + "T00:00:00");
+            if (isNaN(formatted)) return date;
+            return formatted.toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+        }
+
+        function showMessage(message, type) {
+            document.getElementById("message").innerHTML = `<div class="alert alert-${type} mt-3">${message}</div>`;
+        }
+
+        function logout(event) {
+            event.preventDefault();
+            localStorage.removeItem("user");
+            fetch("/api/logout", { method: "POST" }).finally(() => {
+                window.location.href = "login.html";
+            });
+            return false;
+        }
+
+        loadOrder();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
