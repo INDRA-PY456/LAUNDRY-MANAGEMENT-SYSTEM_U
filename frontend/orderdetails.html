@@ -168,14 +168,15 @@
                     document.getElementById("customerPhone").innerText = customer.phone;
                 }
 
-                document.getElementById("laundryItems").innerHTML = `
+                const items = Array.isArray(data.items) && data.items.length ? data.items : [{ item: data.item, service: data.service, quantity: data.quantity, lineTotal: data.total }];
+                document.getElementById("laundryItems").innerHTML = items.map(line => `
                     <tr>
-                        <td>${data.item}</td>
-                        <td>${data.service}</td>
-                        <td>${data.quantity}</td>
-                        <td>₹${Number(data.total).toLocaleString("en-IN")}</td>
+                        <td>${escapeHtml(line.item)}</td>
+                        <td>${escapeHtml(line.service)}</td>
+                        <td>${Number(line.quantity)}</td>
+                        <td>₹${Number(line.lineTotal ?? line.total ?? 0).toLocaleString("en-IN")}</td>
                     </tr>
-                `;
+                `).join("");
 
                 updateStatusDisplay(data.status);
             } catch (error) {
@@ -265,6 +266,10 @@
             document.getElementById("receivedLine").classList.toggle("border-success", currentIndex >= 1);
             document.getElementById("washingLine").classList.toggle("border-success", currentIndex >= 2);
             document.getElementById("readyLine").classList.toggle("border-success", currentIndex >= 3);
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[character]));
         }
 
         function formatDate(date) {
