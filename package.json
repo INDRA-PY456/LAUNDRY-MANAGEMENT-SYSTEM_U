@@ -1,0 +1,24 @@
+{
+  "name": "washflow-lms",
+  "version": "1.1.0",
+  "description": "WashFlow Laundry Management System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "migrate:sqlite": "node migrate-sqlite.js"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.24.5",
+    "better-sqlite3": "^13.0.3",
+    "express-session": "^1.18.2",
+    "express-mysql-session": "^3.0.3"
+  }
+}
