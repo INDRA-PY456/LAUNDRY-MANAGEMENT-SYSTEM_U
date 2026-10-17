@@ -72,6 +72,17 @@ async function initializeDatabase() {
       INDEX idx_orders_customerId (customerId),
       INDEX idx_orders_status (status)
     ) ENGINE=InnoDB`);
+    await connection.query(`CREATE TABLE IF NOT EXISTS order_items (
+      id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      orderId INT NOT NULL,
+      item VARCHAR(100) NOT NULL,
+      service VARCHAR(100) NOT NULL,
+      quantity INT NOT NULL,
+      unitPrice DECIMAL(10,2) NOT NULL DEFAULT 0,
+      lineTotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+      INDEX idx_order_items_orderId (orderId),
+      CONSTRAINT fk_order_items_order FOREIGN KEY (orderId) REFERENCES orders(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB`);
     await connection.query(`CREATE TABLE IF NOT EXISTS users (
       id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
       email VARCHAR(190) NOT NULL UNIQUE,
@@ -170,26 +181,79 @@ app.delete("/api/customers/:id", async (req, res, next) => {
 });
 
 app.get("/api/orders", async (req, res, next) => {
-  try { res.json(await queryAll("SELECT * FROM orders ORDER BY id DESC")); } catch (error) { next(error); }
+  try {
+    const orders = await queryAll(`SELECT o.*,
+      (SELECT GROUP_CONCAT(DISTINCT oi.service SEPARATOR ', ') FROM order_items oi WHERE oi.orderId = o.id) AS itemServices,
+      (SELECT GROUP_CONCAT(DISTINCT oi.item SEPARATOR ', ') FROM order_items oi WHERE oi.orderId = o.id) AS itemNames,
+      (SELECT SUM(oi.quantity) FROM order_items oi WHERE oi.orderId = o.id) AS itemQuantity
+      FROM orders o ORDER BY o.id DESC`);
+    res.json(orders.map(order => ({
+      ...order,
+      service: order.itemServices || order.service,
+      item: order.itemNames || order.item,
+      quantity: order.itemQuantity === null ? order.quantity : Number(order.itemQuantity)
+    })));
+  } catch (error) { next(error); }
 });
 
 app.get("/api/orders/:id", async (req, res, next) => {
   try {
     const order = await queryOne("SELECT * FROM orders WHERE id = ?", [Number(req.params.id)]);
     if (!order) return res.status(404).json({ message: "Order not found" });
-    res.json(order);
+    const items = await queryAll("SELECT id, item, service, quantity, unitPrice, lineTotal FROM order_items WHERE orderId = ? ORDER BY id", [order.id]);
+    res.json({ ...order, items });
   } catch (error) { next(error); }
 });
 
 app.post("/api/orders", async (req, res, next) => {
+  let connection;
   try {
-    const { customerId, service, item, quantity, orderDate, deliveryDate, total, paymentStatus } = req.body;
-    if (!customerId || !service || !item || !quantity) return res.status(400).json({ message: "Customer, service, item and quantity are required" });
-    const customer = await queryOne("SELECT * FROM customers WHERE id = ?", [Number(customerId)]);
-    if (!customer) return res.status(404).json({ message: "Customer not found" });
-    const [result] = await pool.execute("INSERT INTO orders (customerId, customerName, service, item, quantity, orderDate, deliveryDate, total, paymentStatus, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Received')", [Number(customerId), customer.name, service, item, Number(quantity), orderDate || null, deliveryDate || null, Number(total || 0), paymentStatus || "Pending"]);
-    res.status(201).json({ message: "Order created successfully", order: await queryOne("SELECT * FROM orders WHERE id = ?", [result.insertId]) });
-  } catch (error) { next(error); }
+    const { customerId, service, item, quantity, orderDate, deliveryDate, paymentStatus } = req.body;
+    const prices = {
+      "Wash & Fold": { Shirt: 40, Pant: 50, "T-Shirt": 40, Bedsheet: 100, Curtain: 120 },
+      "Dry Cleaning": { Shirt: 80, Pant: 100, "T-Shirt": 80, Bedsheet: 180, Curtain: 200 },
+      Ironing: { Shirt: 20, Pant: 25, "T-Shirt": 20, Bedsheet: 40, Curtain: 50 },
+      "Wash & Iron": { Shirt: 60, Pant: 70, "T-Shirt": 60, Bedsheet: 140, Curtain: 160 }
+    };
+    const requestedItems = Array.isArray(req.body.items) ? req.body.items : [{ service, item, quantity }];
+    if (!customerId || requestedItems.length === 0) return res.status(400).json({ message: "Customer and at least one laundry item are required" });
+    const normalizedItems = [];
+    for (const line of requestedItems) {
+      const lineService = line.service;
+      const lineItem = line.item;
+      const lineQuantity = Number(line.quantity);
+      const unitPrice = prices[lineService]?.[lineItem];
+      if (!unitPrice || !Number.isInteger(lineQuantity) || lineQuantity < 1) {
+        return res.status(400).json({ message: "Choose a valid service, item and quantity for every row" });
+      }
+      normalizedItems.push({ service: lineService, item: lineItem, quantity: lineQuantity, unitPrice, lineTotal: unitPrice * lineQuantity });
+    }
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+    const [customersFound] = await connection.execute("SELECT * FROM customers WHERE id = ? LIMIT 1", [Number(customerId)]);
+    const customer = customersFound[0];
+    if (!customer) {
+      await connection.rollback();
+      return res.status(404).json({ message: "Customer not found" });
+    }
+    const total = normalizedItems.reduce((sum, line) => sum + line.lineTotal, 0);
+    const serviceSummary = [...new Set(normalizedItems.map(line => line.service))].join(", ");
+    const itemSummary = [...new Set(normalizedItems.map(line => line.item))].join(", ");
+    const totalQuantity = normalizedItems.reduce((sum, line) => sum + line.quantity, 0);
+    const [result] = await connection.execute("INSERT INTO orders (customerId, customerName, service, item, quantity, orderDate, deliveryDate, total, paymentStatus, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Received')", [Number(customerId), customer.name, serviceSummary, itemSummary, totalQuantity, orderDate || null, deliveryDate || null, total, paymentStatus || "Pending"]);
+    for (const line of normalizedItems) {
+      await connection.execute("INSERT INTO order_items (orderId, item, service, quantity, unitPrice, lineTotal) VALUES (?, ?, ?, ?, ?, ?)", [result.insertId, line.item, line.service, line.quantity, line.unitPrice, line.lineTotal]);
+    }
+    await connection.commit();
+    const order = await queryOne("SELECT * FROM orders WHERE id = ?", [result.insertId]);
+    const items = await queryAll("SELECT id, item, service, quantity, unitPrice, lineTotal FROM order_items WHERE orderId = ? ORDER BY id", [result.insertId]);
+    res.status(201).json({ message: "Order created successfully", order: { ...order, items } });
+  } catch (error) {
+    if (connection) await connection.rollback();
+    next(error);
+  } finally {
+    if (connection) connection.release();
+  }
 });
 
 app.put("/api/orders/:id", async (req, res, next) => {
