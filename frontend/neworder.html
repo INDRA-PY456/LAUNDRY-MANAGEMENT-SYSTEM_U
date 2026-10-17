@@ -64,41 +64,15 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-header">Laundry Details</div>
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Laundry Details</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addItemRow()">ADD ITEM</button>
+                    </div>
                     <div class="card-body">
-                        <div class="mb-3 row">
-                            <label for="laundryService" class="col-sm-4 col-form-label">Service Type</label>
-                            <div class="col-sm-8">
-                                <select class="form-select" id="laundryService">
-                                    <option selected>Select Service</option>
-                                    <option>Wash & Fold</option>
-                                    <option>Dry Cleaning</option>
-                                    <option>Ironing</option>
-                                    <option>Wash & Iron</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mb-3 row">
-                            <label for="laundryType" class="col-sm-4 col-form-label">Item Type</label>
-                            <div class="col-sm-8">
-                                <select class="form-select" id="laundryType">
-                                    <option selected>Select Item</option>
-                                    <option>Shirt</option>
-                                    <option>Pant</option>
-                                    <option>T-Shirt</option>
-                                    <option>Bedsheet</option>
-                                    <option>Curtain</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mb-3 row">
-                            <label for="laundryQuantity" class="col-sm-4 col-form-label">Quantity</label>
-                            <div class="col-sm-8">
-                                <input type="number" class="form-control" id="laundryQuantity" min="1">
-                            </div>
-                        </div>
+                        <div id="itemsContainer"></div>
+                        <div class="text-end mt-3"><strong>Order Total: ₹<span id="orderTotalDisplay">0</span></strong></div>
                     </div>
                 </div>
             </div>
@@ -154,65 +128,112 @@
     <script>
         const API_URL = "/api";
         let customers = [];
+        const prices = {
+            "Wash & Fold": { "Shirt": 40, "Pant": 50, "T-Shirt": 40, "Bedsheet": 100, "Curtain": 120 },
+            "Dry Cleaning": { "Shirt": 80, "Pant": 100, "T-Shirt": 80, "Bedsheet": 180, "Curtain": 200 },
+            "Ironing": { "Shirt": 20, "Pant": 25, "T-Shirt": 20, "Bedsheet": 40, "Curtain": 50 },
+            "Wash & Iron": { "Shirt": 60, "Pant": 70, "T-Shirt": 60, "Bedsheet": 140, "Curtain": 160 }
+        };
 
         async function loadCustomers() {
             try {
                 const response = await fetch(`${API_URL}/customers`);
+                if (!response.ok) throw new Error("Unable to load customers");
                 customers = await response.json();
             } catch (error) {
                 customers = [];
             }
         }
 
-        function calculateTotal() {
-            const service = document.getElementById("laundryService").value;
-            const item = document.getElementById("laundryType").value;
-            const quantity = Number(document.getElementById("laundryQuantity").value);
-            const prices = {
-                "Wash & Fold": {
-                    "Shirt": 40,
-                    "Pant": 50,
-                    "T-Shirt": 40,
-                    "Bedsheet": 100,
-                    "Curtain": 120
-                },
-                "Dry Cleaning": {
-                    "Shirt": 80,
-                    "Pant": 100,
-                    "T-Shirt": 80,
-                    "Bedsheet": 180,
-                    "Curtain": 200
-                },
-                "Ironing": {
-                    "Shirt": 20,
-                    "Pant": 25,
-                    "T-Shirt": 20,
-                    "Bedsheet": 40,
-                    "Curtain": 50
-                },
-                "Wash & Iron": {
-                    "Shirt": 60,
-                    "Pant": 70,
-                    "T-Shirt": 60,
-                    "Bedsheet": 140,
-                    "Curtain": 160
-                }
-            };
+        function addItemRow() {
+            const container = document.getElementById("itemsContainer");
+            const row = document.createElement("div");
+            row.className = "row g-3 align-items-end border rounded p-3 mb-3 laundry-item-row";
+            row.innerHTML = `
+                <div class="col-md-4">
+                    <label class="form-label">Service Type</label>
+                    <select class="form-select item-service">
+                        <option value="">Select Service</option>
+                        <option>Wash & Fold</option>
+                        <option>Dry Cleaning</option>
+                        <option>Ironing</option>
+                        <option>Wash & Iron</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Item Type</label>
+                    <select class="form-select item-type">
+                        <option value="">Select Item</option>
+                        <option>Shirt</option>
+                        <option>Pant</option>
+                        <option>T-Shirt</option>
+                        <option>Bedsheet</option>
+                        <option>Curtain</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" class="form-control item-quantity" min="1" value="1">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Line Total</label>
+                    <input type="text" class="form-control item-line-total" value="₹0" readonly>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger w-100" onclick="removeItemRow(this)" aria-label="Remove item"><i class="bi bi-trash"></i></button>
+                </div>
+            `;
+            row.querySelectorAll("select, input").forEach(input => input.addEventListener("change", calculateTotal));
+            row.querySelector(".item-quantity").addEventListener("input", calculateTotal);
+            container.appendChild(row);
+            calculateTotal();
+        }
 
-            const price = prices[service]?.[item] || 0;
-            document.getElementById("totalAmount").value = price * quantity;
+        function removeItemRow(button) {
+            const rows = document.querySelectorAll(".laundry-item-row");
+            if (rows.length === 1) {
+                const row = rows[0];
+                row.querySelector(".item-service").value = "";
+                row.querySelector(".item-type").value = "";
+                row.querySelector(".item-quantity").value = "1";
+            } else {
+                button.closest(".laundry-item-row").remove();
+            }
+            calculateTotal();
+        }
+
+        function getItemRows() {
+            return [...document.querySelectorAll(".laundry-item-row")].map(row => ({
+                service: row.querySelector(".item-service").value,
+                item: row.querySelector(".item-type").value,
+                quantity: Number(row.querySelector(".item-quantity").value),
+                unitPrice: prices[row.querySelector(".item-service").value]?.[row.querySelector(".item-type").value] || 0
+            }));
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            document.querySelectorAll(".laundry-item-row").forEach(row => {
+                const service = row.querySelector(".item-service").value;
+                const item = row.querySelector(".item-type").value;
+                const quantity = Number(row.querySelector(".item-quantity").value);
+                const unitPrice = prices[service]?.[item] || 0;
+                const lineTotal = unitPrice * (Number.isInteger(quantity) && quantity > 0 ? quantity : 0);
+                row.querySelector(".item-line-total").value = `₹${lineTotal.toLocaleString("en-IN")}`;
+                total += lineTotal;
+            });
+            document.getElementById("totalAmount").value = total;
+            document.getElementById("orderTotalDisplay").innerText = total.toLocaleString("en-IN");
         }
 
         async function addOrder() {
             const name = document.getElementById("customerName").value.trim();
             const phone = document.getElementById("customerPhone").value.trim();
-            const service = document.getElementById("laundryService").value;
-            const item = document.getElementById("laundryType").value;
-            const quantity = Number(document.getElementById("laundryQuantity").value);
+            const items = getItemRows();
             const orderDate = document.getElementById("pickupDate").value;
             const deliveryDate = document.getElementById("deliveryDate").value;
-            const total = Number(document.getElementById("totalAmount").value);
             const paymentStatus = document.getElementById("status").value;
+            const total = Number(document.getElementById("totalAmount").value);
             const message = document.getElementById("message");
 
             if (!name || !phone) {
@@ -220,13 +241,12 @@
                 return;
             }
 
-            if (service === "Select Service" || item === "Select Item" || !quantity || quantity < 1) {
-                message.innerHTML = `<div class="alert alert-danger mt-3">Please select service, item and quantity.</div>`;
+            if (items.some(line => !line.service || !line.item || !Number.isInteger(line.quantity) || line.quantity < 1)) {
+                message.innerHTML = `<div class="alert alert-danger mt-3">Please select a service, item and valid quantity for every row.</div>`;
                 return;
             }
 
             const customer = customers.find(c => c.name.toLowerCase() === name.toLowerCase() && c.phone === phone);
-
             if (!customer) {
                 message.innerHTML = `<div class="alert alert-danger mt-3">Customer not found. Please add the customer first.</div>`;
                 return;
@@ -235,33 +255,16 @@
             try {
                 const response = await fetch(`${API_URL}/orders`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        customerId: customer.id,
-                        service,
-                        item,
-                        quantity,
-                        orderDate,
-                        deliveryDate,
-                        total,
-                        paymentStatus
-                    })
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ customerId: customer.id, items, orderDate, deliveryDate, total, paymentStatus })
                 });
-
                 const data = await response.json();
-
                 if (!response.ok) {
                     message.innerHTML = `<div class="alert alert-danger mt-3">${data.message}</div>`;
                     return;
                 }
-
                 message.innerHTML = `<div class="alert alert-success mt-3">Order created successfully.</div>`;
-
-                setTimeout(() => {
-                    window.location.href = "orders.html";
-                }, 800);
+                setTimeout(() => { window.location.href = "orders.html"; }, 800);
             } catch (error) {
                 message.innerHTML = `<div class="alert alert-danger mt-3">Unable to connect to backend.</div>`;
             }
@@ -270,16 +273,11 @@
         function logout(event) {
             event.preventDefault();
             localStorage.removeItem("user");
-            fetch("/api/logout", { method: "POST" }).finally(() => {
-                window.location.href = "login.html";
-            });
+            fetch("/api/logout", { method: "POST" }).finally(() => { window.location.href = "login.html"; });
             return false;
         }
 
-        document.getElementById("laundryService").addEventListener("change", calculateTotal);
-        document.getElementById("laundryType").addEventListener("change", calculateTotal);
-        document.getElementById("laundryQuantity").addEventListener("input", calculateTotal);
-
+        addItemRow();
         loadCustomers();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
